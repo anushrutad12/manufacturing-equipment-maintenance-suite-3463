@@ -16,7 +16,12 @@ def _build_mysql_sqlalchemy_url() -> str:
     We intentionally do NOT parse db_connection.txt at runtime; we follow platform-provided
     env vars: MYSQL_URL, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB, MYSQL_PORT.
 
-    MYSQL_URL may be a host or host:port (do not assume). MYSQL_PORT may override.
+    MYSQL_URL may be:
+      - hostname
+      - hostname:port
+      - mysql://hostname:port (some orchestrators include protocol)
+
+    MYSQL_PORT, if provided, overrides any port embedded in MYSQL_URL.
     """
     s = get_settings()
     if not (s.mysql_url and s.mysql_user and s.mysql_password and s.mysql_db):
@@ -25,7 +30,14 @@ def _build_mysql_sqlalchemy_url() -> str:
             "Optional: MYSQL_PORT."
         )
 
-    host = s.mysql_url
+    host = s.mysql_url.strip()
+
+    # Tolerate protocol prefixes in MYSQL_URL
+    for prefix in ("mysql://", "http://", "https://"):
+        if host.startswith(prefix):
+            host = host[len(prefix) :]
+            break
+
     port = s.mysql_port
 
     # If MYSQL_URL already includes :port, keep it unless MYSQL_PORT is explicitly provided.
