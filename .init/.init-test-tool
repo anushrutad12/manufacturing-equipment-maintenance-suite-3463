@@ -1,0 +1,4 @@
+{
+    "command": "pytest",
+    "working_directory": "/home/kavia/workspace/code-generation/manufacturing-equipment-maintenance-suite-3463/maintenance_backend"
+}
